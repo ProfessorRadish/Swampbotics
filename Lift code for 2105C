@@ -316,20 +316,17 @@ task usercontrol()
 		}
 		else if(Placeholder==1)
 		{
-			motor[liftOne] = 127;
-			motor[liftTwo] = 127;
+			liftMotorSet (127);
 			mControl = 0;
 		}
 		else if(Placeholder==1)
 		{
-			motor[liftOne] = -127;
-			motor[liftTwo] = -127;
+			liftMotorSet (-127);
 			mControl = 0;
 		}
 		else if(lControl == 0 && Placeholder == 0 && Placeholder ==0)
 		{
-			motor[liftOne] = 10;
-			motor[liftTwo] = 10;
+			liftMotorSet (10);
 		}
 		//-----Cap-Manipulator----//
 		if(Placeholder==1)
