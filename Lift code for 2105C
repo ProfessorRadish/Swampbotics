@@ -301,28 +301,28 @@ task usercontrol()
 		//-----Lift-----//
 		if(Placeholder==1)
 		{
-			mControl = 1;
-			manipAngle = Placeholder;
+			lControl = 1;
+			liftAngle = Placeholder;
 		}
 		else if(Placeholder==1)
 		{
-			mControl = 1;
-			manipAngle = Placeholder;
+			lControl = 1;
+			liftAngle = Placeholder;
 		}
 		else if(Placeholder==1)
 		{
-			mControl = 1;
-			manipAngle = Placeholder;
+			lControl = 1;
+			liftAngle = Placeholder;
 		}
 		else if(Placeholder==1)
 		{
 			liftMotorSet (127);
-			mControl = 0;
+			lControl = 0;
 		}
 		else if(Placeholder==1)
 		{
 			liftMotorSet (-127);
-			mControl = 0;
+			lControl = 0;
 		}
 		else if(lControl == 0 && Placeholder == 0 && Placeholder ==0)
 		{
@@ -346,20 +346,17 @@ task usercontrol()
 		}
 		else if(Placeholder==1)
 		{
-			motor[liftOne] = 127;
-			motor[liftTwo] = 127;
+			manipMotorSet (127);
 			mControl = 0;
 		}
 		else if(Placeholder==1)
 		{
-			motor[liftOne] = -127;
-			motor[liftTwo] = -127;
+			manipMotorSet (-127);
 			mControl = 0;
 		}
-		else if(lControl == 0 && Placeholder == 0 && Placeholder ==0)
+		else if(mControl == 0 && Placeholder == 0 && Placeholder ==0)
 		{
-			motor[liftOne] = 10;
-			motor[liftTwo] = 10;
+			manipMotorSet (10);
 		}
 		wait1Msec(10);
 	}
