@@ -31,50 +31,64 @@ int liftAngle;
 int manipAngle;
 int Placeholder;
 int errorLift;
+int errorManip;
 int motorPower;
 int mControl;
 int lControl;
-
+int last_error;
+// sets motors to correct power for lift
+void liftMotorSet ( int value )
+{
+	motor[liftOne] = value;
+	motor[liftTwo] = value;
+}
+//sets motors to correct power for manipulator
+void manipMotorSet (int value )
+{
+	motor[Placeholder] = value;
+}
 // task for controlling the manipulator's movements
 task CapControl()
 {
 	while(mControl)
 	{
-		errorLift = manipAngle - SensorValue(manipPot);
-		motorPower= errorLift * .05;
+		errorManip = manipAngle - SensorValue(manipPot);
+		motorPower = errorManip * .05;
+		if(SensorValue(manipPot) >= Placeholder) motor[Placeholder] = 10;
+		if(SensorValue(manipPot) <= Placeholder) motor[Placeholder] = 10;
+		if(sgn(errorLift) != sgn(last_error) ) motor[Placeholder] = 10;
 		if( motorPower > 127 ) motorPower = 127;
 		if( motorPower < -127 ) motorPower = -127;
-		motor[Placeholder] = motorPower;
+		manipMotorSet (motorPower);
 		wait1Msec(20);
 	}
+	errorManip = last_error;
+	wait1Msec(10);
 }
-
 //task for controlling the lift's movements
 task LiftControl()
 {
 	while(lControl)
 	{
-		errorLift = liftAngle - SensorValue(liftPot);
-		motorPower= errorLift * .05;
+		errorLift = liftAngle - SensorValue(manipPot);
+		motorPower = errorLift * .05;
+		if(SensorValue(liftPot) >= Placeholder) motor [liftTwo] = motor[liftOne] = 10;
+		if(SensorValue(liftPot) <= Placeholder) motor [liftTwo] = motor[liftOne] = 10;
+		if(sgn(errorLift) != sgn(last_error) ) motor [liftTwo] = motor[liftOne] = 10;
 		if( motorPower > 127 ) motorPower = 127;
 		if( motorPower < -127 ) motorPower = -127;
-		motor[liftOne] = motorPower;
-		motor[liftTwo] = motorPower;
+		liftMotorSet (motorPower);
 		wait1Msec(20);
 	}
+	errorLift = last_error;
+	wait1Msec(10);
 }
-
 void pre_auton()
 {
-
 	bStopTasksBetweenModes = true;
-
 }
-
-
 task autonomous()
 {
-
 	//Red Auton//
 	/*
 	motor[fldrive] = -127;
@@ -149,11 +163,8 @@ task autonomous()
 	motor[fldrive] = 0;
 	motor[frdrive] = 0;
 	motor[bldrive] = 0;
-	motor[brdrive] = 0;
-	*/
-
+	motor[brdrive] = 0;*/
 	//Blue Auton//
-
 	motor[fldrive] = -127;
 	motor[frdrive] = -127;
 	motor[bldrive] = -127;
@@ -224,9 +235,7 @@ task autonomous()
 	motor[frdrive] = 0;
 	motor[bldrive] = 0;
 	motor[brdrive] = 0;
-
 }
-
 task usercontrol()
 {
 	while (true)
@@ -242,13 +251,11 @@ task usercontrol()
 		sprintf(mainBattery, "%1.2f%c", nImmediateBatteryLevel/1000.0, 'V');
 		displayNextLCDString(mainBattery);
 		wait1Msec(20);
-
 		//-----Drive-----//
 		motor(fldrive) = vexRT(Ch3);
 		motor(frdrive) = vexRT(Ch2);
 		motor(bldrive) = vexRT(Ch3);
 		motor(brdrive) = vexRT(Ch2);
-
 		//-----Flywheel-----//
 		if(vexRT(Btn8U)==1)
 		{
@@ -265,7 +272,6 @@ task usercontrol()
 			motor(flyfrnt) = 0;
 			motor(flytop) = 0;
 		}
-
 		//----Collection----//
 		if(vexRT(Btn5U)==1)
 		{
@@ -279,7 +285,6 @@ task usercontrol()
 		{
 			motor(collection) = 0;
 		}
-
 		//------Claw------//
 		if(vexRT(Btn7L)==1)
 		{
@@ -293,7 +298,6 @@ task usercontrol()
 		{
 			motor(claw) = 0;
 		}
-
 		//-----Lift-----//
 		if(Placeholder==1)
 		{
@@ -327,7 +331,6 @@ task usercontrol()
 			motor[liftOne] = 10;
 			motor[liftTwo] = 10;
 		}
-
 		//-----Cap-Manipulator----//
 		if(Placeholder==1)
 		{
