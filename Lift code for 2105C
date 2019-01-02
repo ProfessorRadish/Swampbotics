@@ -7,7 +7,6 @@ int errorManip;
 int motorPower;
 int mControl;
 int lControl;
-int last_error;
 int LIFT_ARM_HOLD_RANGE_LOW = Placeholder;
 int LIFT_ARM_HOLD_RANGE_HIGH = Placeholder;
 int LIFT_ARM_HOLD_POWER = 10;
@@ -20,7 +19,7 @@ int MANIP_ARM_UPPER_LIMIT = Placeholder;
 int MANIP_ARM_LOWER_LIMIT = Placeholder;
 
 // sets motors to correct power for lift
-void liftMotorSet ( int value )
+void liftMotorSet ( int value, int deadzone )
 {
 	int drive_value = value;
 
@@ -36,11 +35,13 @@ void liftMotorSet ( int value )
 		drive_value = 0;
 	if( (SensorValue(liftPot) < LIFT_ARM_LOWER_LIMIT ) && (drive_value < 0) )
 		drive_value = 0;
+	if(abs(errorLift) < deadzone)
+		drive_value = 10;
 	motor[liftOne] = drive_value;
 	motor[liftTwo] = drive_value;
 }
 //sets motors to correct power for manipulator
-void manipMotorSet (int value )
+void manipMotorSet (int value, int deadzone )
 {
 	int drive_value = value;
 
@@ -56,6 +57,8 @@ void manipMotorSet (int value )
 		drive_value = 0;
 	if( (SensorValue(manipPot) < MANIP_ARM_LOWER_LIMIT ) && (drive_value < 0) )
 		drive_value = 0;
+	if(abs(errorLift) < deadzone)
+		drive_value = 10;
 	motor[Placeholder] = drive_value;
 }
 // task for controlling the manipulator's movements
@@ -68,11 +71,9 @@ task CapControl()
 		{
 			errorManip = manipAngle - SensorValue(manipPot);
 			motorPower = errorManip * .05;
-			if(sgn(errorLift) != sgn(last_error) ) motor[Placeholder] = 10;
 			if( motorPower > 127 ) motorPower = 127;
 			if( motorPower < -127 ) motorPower = -127;
-			manipMotorSet (motorPower);
-			errorManip = last_error;
+			manipMotorSet (motorPower, 100);
 			wait1Msec(20);
 		}
 		wait1Msec(10);
@@ -88,11 +89,9 @@ task LiftControl()
 		{
 			errorLift = liftAngle - SensorValue(manipPot);
 			motorPower = errorLift * .05;
-			if(sgn(errorLift) != sgn(last_error) ) motor [liftTwo] = motor[liftOne] = 10;
 			if( motorPower > 127 ) motorPower = 127;
 			if( motorPower < -127 ) motorPower = -127;
-			liftMotorSet (motorPower);
-			errorLift = last_error;
+			liftMotorSet (motorPower, 100);
 			wait1Msec(20);
 		}
 		wait1Msec(10);
@@ -105,7 +104,7 @@ task usercontrol()
 
 	while (true)
 	{
-	//-----Lift-----//
+			//-----Lift-----//
 		if(Placeholder==1)
 		{
 			lControl = 1;
@@ -113,17 +112,17 @@ task usercontrol()
 		}
 		else if(Placeholder==1)
 		{
-			liftMotorSet (127);
+			liftMotorSet (127, 0);
 			lControl = 0;
 		}
 		else if(Placeholder==1)
 		{
-			liftMotorSet (-127);
+			liftMotorSet (-127, 0);
 			lControl = 0;
 		}
 		else if(lControl == 0 && Placeholder == 0 && Placeholder ==0)
 		{
-			liftMotorSet (LIFT_ARM_HOLD_POWER);
+			liftMotorSet (LIFT_ARM_HOLD_POWER, 0);
 		}
 		//-----Cap-Manipulator----//
 		if(Placeholder==1)
@@ -143,17 +142,17 @@ task usercontrol()
 		}
 		else if(Placeholder==1)
 		{
-			manipMotorSet (127);
+			manipMotorSet (127, 0);
 			mControl = 0;
 		}
 		else if(Placeholder==1)
 		{
-			manipMotorSet (-127);
+			manipMotorSet (-127, 0);
 			mControl = 0;
 		}
 		else if(mControl == 0 && Placeholder == 0 && Placeholder ==0)
 		{
-			manipMotorSet (LIFT_ARM_HOLD_POWER);
+			manipMotorSet (MANIP_ARM_HOLD_POWER, 0);
 		}
 		wait1Msec(10);
 	}
