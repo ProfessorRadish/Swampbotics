@@ -8,29 +8,66 @@ int motorPower;
 int mControl;
 int lControl;
 int last_error;
+int LIFT_ARM_HOLD_RANGE_LOW = Placeholder;
+int LIFT_ARM_HOLD_RANGE_HIGH = Placeholder;
+int LIFT_ARM_HOLD_POWER = 10;
+int LIFT_ARM_UPPER_LIMIT = Placeholder;
+int LIFT_ARM_LOWER_LIMIT = Placeholder;
+int MANIP_ARM_HOLD_RANGE_LOW = Placeholder;
+int MANIP_ARM_HOLD_RANGE_HIGH = Placeholder;
+int MANIP_ARM_HOLD_POWER = 10;
+int MANIP_ARM_UPPER_LIMIT = Placeholder;
+int MANIP_ARM_LOWER_LIMIT = Placeholder;
+
 // sets motors to correct power for lift
 void liftMotorSet ( int value )
 {
-	motor[liftOne] = value;
-	motor[liftTwo] = value;
+	int drive_value = value;
+
+	// holding power
+	if( (SensorValue(liftPot) > LIFT_ARM_HOLD_RANGE_LOW) && (SensorValue(liftPot) < LIFT_ARM_HOLD_RANGE_HIGH) )
+	{
+		if( (drive_value >= 0) && ( drive_value < LIFT_ARM_HOLD_POWER ) )
+			drive_value = LIFT_ARM_HOLD_POWER;
+	}
+
+	// limit range at extreme end of range
+	if( (SensorValue(liftPot) > LIFT_ARM_UPPER_LIMIT ) && (drive_value > 0) )
+		drive_value = 0;
+	if( (SensorValue(liftPot) < LIFT_ARM_LOWER_LIMIT ) && (drive_value < 0) )
+		drive_value = 0;
+	motor[liftOne] = drive_value;
+	motor[liftTwo] = drive_value;
 }
 //sets motors to correct power for manipulator
 void manipMotorSet (int value )
 {
-	motor[Placeholder] = value;
+	int drive_value = value;
+
+	// holding power
+	if( (SensorValue(manipPot) > MANIP_ARM_HOLD_RANGE_LOW) && (SensorValue(manipPot) < MANIP_ARM_HOLD_RANGE_HIGH) )
+	{
+		if( (drive_value >= 0) && ( drive_value < MANIP_ARM_HOLD_POWER ) )
+			drive_value = MANIP_ARM_HOLD_POWER;
+	}
+
+	// limit range at extreme end of range
+	if( (SensorValue(manipPot) > MANIP_ARM_UPPER_LIMIT ) && (drive_value > 0) )
+		drive_value = 0;
+	if( (SensorValue(manipPot) < MANIP_ARM_LOWER_LIMIT ) && (drive_value < 0) )
+		drive_value = 0;
+	motor[Placeholder] = drive_value;
 }
 // task for controlling the manipulator's movements
 task CapControl()
 {
-	lControl = 0;
+	mControl = 0;
 	while(true)
 	{
 		while(mControl)
 		{
 			errorManip = manipAngle - SensorValue(manipPot);
 			motorPower = errorManip * .05;
-			if(SensorValue(manipPot) >= Placeholder) motor[Placeholder] = 10;
-			if(SensorValue(manipPot) <= Placeholder) motor[Placeholder] = 10;
 			if(sgn(errorLift) != sgn(last_error) ) motor[Placeholder] = 10;
 			if( motorPower > 127 ) motorPower = 127;
 			if( motorPower < -127 ) motorPower = -127;
@@ -44,15 +81,13 @@ task CapControl()
 //task for controlling the lift's movements
 task LiftControl()
 {
-	mControl = 0;
+	lControl = 0;
 	while(true)
 	{
 		while(lControl)
 		{
 			errorLift = liftAngle - SensorValue(manipPot);
 			motorPower = errorLift * .05;
-			if(SensorValue(liftPot) >= Placeholder) motor [liftTwo] = motor[liftOne] = 10;
-			if(SensorValue(liftPot) <= Placeholder) motor [liftTwo] = motor[liftOne] = 10;
 			if(sgn(errorLift) != sgn(last_error) ) motor [liftTwo] = motor[liftOne] = 10;
 			if( motorPower > 127 ) motorPower = 127;
 			if( motorPower < -127 ) motorPower = -127;
@@ -88,7 +123,7 @@ task usercontrol()
 		}
 		else if(lControl == 0 && Placeholder == 0 && Placeholder ==0)
 		{
-			liftMotorSet (10);
+			liftMotorSet (LIFT_ARM_HOLD_POWER);
 		}
 		//-----Cap-Manipulator----//
 		if(Placeholder==1)
@@ -118,7 +153,7 @@ task usercontrol()
 		}
 		else if(mControl == 0 && Placeholder == 0 && Placeholder ==0)
 		{
-			manipMotorSet (10);
+			manipMotorSet (LIFT_ARM_HOLD_POWER);
 		}
 		wait1Msec(10);
 	}
