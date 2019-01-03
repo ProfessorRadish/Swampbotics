@@ -1,73 +1,31 @@
-// variables for the lift and cap manipulator
-int liftAngle;
+// variables for the cap manipulator
 int manipAngle;
 int Placeholder;
-int errorLift;
 int errorManip;
-int LiftMotorPower;
 int ManipMotorPower;
 int mControl;
-int lControl;
-int LIFT_ARM_HOLD_RANGE_LOW = Placeholder;
-int LIFT_ARM_HOLD_RANGE_HIGH = Placeholder;
-int LIFT_ARM_HOLD_POWER = 10;
-int LIFT_ARM_UPPER_LIMIT = Placeholder;
-int LIFT_ARM_LOWER_LIMIT = Placeholder;
-int MANIP_ARM_HOLD_RANGE_LOW = Placeholder;
-int MANIP_ARM_HOLD_RANGE_HIGH = Placeholder;
-int MANIP_ARM_HOLD_POWER = 10;
-int MANIP_ARM_UPPER_LIMIT = Placeholder;
-int MANIP_ARM_LOWER_LIMIT = Placeholder;
-long liftCount;
 long manipCount;
-
-//lift count
-long liftCounts()
-{
-	return(SensorValue[liftPot]);
-}
+#define MANIP_ARM_HOLD_RANGE_LOW Placeholder
+#define MANIP_ARM_HOLD_RANGE_HIGH Placeholder
+#define MANIP_ARM_HOLD_POWER 10
+#define MANIP_ARM_UPPER_LIMIT Placeholder
+#define MANIP_ARM_LOWER_LIMIT Placeholder
 //manip count
 long manipCounts()
 {
 	return(SensorValue[manipPot]);
-}
-
-// sets motors to correct power for lift
-void liftMotorSet ( int value, int deadzone )
-{
-	liftCount = liftCounts();
-	int drive_value = value;
-
-	// holding power
-	if( (liftCount > LIFT_ARM_HOLD_RANGE_LOW) && (liftCount < LIFT_ARM_HOLD_RANGE_HIGH) )
-	{
-		if( (drive_value >= 0) && ( drive_value < LIFT_ARM_HOLD_POWER ) )
-			drive_value = LIFT_ARM_HOLD_POWER;
-	}
-
-	// limit range at extreme end of range
-	if( (liftCount > LIFT_ARM_UPPER_LIMIT ) && (drive_value > 0) )
-		drive_value = 0;
-	if( (liftCount < LIFT_ARM_LOWER_LIMIT ) && (drive_value < 0) )
-		drive_value = 0;
-	if(abs(errorLift) < deadzone)
-		drive_value = 10;
-	motor[liftOne] = drive_value;
-	motor[liftTwo] = drive_value;
 }
 //sets motors to correct power for manipulator
 void manipMotorSet (int value, int deadzone )
 {
 	manipCount = manipCounts();
 	int drive_value = value;
-
 	// holding power
 	if( (manipCount > MANIP_ARM_HOLD_RANGE_LOW) && (manipCount < MANIP_ARM_HOLD_RANGE_HIGH) )
 	{
 		if( (drive_value >= 0) && ( drive_value < MANIP_ARM_HOLD_POWER ) )
 			drive_value = MANIP_ARM_HOLD_POWER;
 	}
-
 	// limit range at extreme end of range
 	if( (manipCount > MANIP_ARM_UPPER_LIMIT ) && (drive_value > 0) )
 		drive_value = 0;
@@ -87,7 +45,7 @@ task CapControl()
 		{
 			manipCount = manipCounts();
 			errorManip = manipAngle - manipCount;
-			ManipMotorPower = errorManip * .05;
+			ManipMotorPower = (errorManip * .05) + 10;
 			if( ManipMotorPower > 127 ) ManipMotorPower = 127;
 			if( ManipMotorPower < -127 ) ManipMotorPower = -127;
 			manipMotorSet (ManipMotorPower, 100);
@@ -95,6 +53,45 @@ task CapControl()
 		}
 		wait1Msec(10);
 	}
+}
+
+//variables for the lift
+int liftAngle;
+int errorLift;
+int LiftMotorPower;
+int lControl;
+long liftCount;
+#define LIFT_ARM_HOLD_RANGE_LOW Placeholder
+#define LIFT_ARM_HOLD_RANGE_HIGH Placeholder
+#define LIFT_ARM_HOLD_POWER 10
+#define LIFT_ARM_UPPER_LIMIT Placeholder
+#define LIFT_ARM_LOWER_LIMIT Placeholder
+//lift count
+long liftCounts()
+{
+	return(SensorValue[liftPot]);
+}
+// sets motors to correct power for lift
+void liftMotorSet ( int value, int deadzone )
+{
+	liftCount = liftCounts();
+	int drive_value = value;
+
+	// holding power
+	if( (liftCount > LIFT_ARM_HOLD_RANGE_LOW) && (liftCount < LIFT_ARM_HOLD_RANGE_HIGH) )
+	{
+		if( (drive_value >= 0) && ( drive_value < LIFT_ARM_HOLD_POWER ) )
+			drive_value = LIFT_ARM_HOLD_POWER;
+	}
+	// limit range at extreme end of range
+	if( (liftCount > LIFT_ARM_UPPER_LIMIT ) && (drive_value > 0) )
+		drive_value = 0;
+	if( (liftCount < LIFT_ARM_LOWER_LIMIT ) && (drive_value < 0) )
+		drive_value = 0;
+	if(abs(errorLift) < deadzone)
+		drive_value = 10;
+	motor[liftOne] = drive_value;
+	motor[liftTwo] = drive_value;
 }
 //task for controlling the lift's movements
 task LiftControl()
@@ -106,7 +103,7 @@ task LiftControl()
 		{
 			liftCount = liftCounts();
 			errorLift = liftAngle - liftCount;
-			LiftMotorPower = errorLift * .05;
+			LiftMotorPower = (errorLift * .05) + 10;
 			if( LiftMotorPower > 127 ) LiftMotorPower = 127;
 			if( LiftMotorPower < -127 ) LiftMotorPower = -127;
 			liftMotorSet (LiftMotorPower, 100);
