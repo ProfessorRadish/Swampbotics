@@ -4,7 +4,8 @@ int manipAngle;
 int Placeholder;
 int errorLift;
 int errorManip;
-int motorPower;
+int LiftMotorPower;
+int ManipMotorPower;
 int mControl;
 int lControl;
 int LIFT_ARM_HOLD_RANGE_LOW = Placeholder;
@@ -17,23 +18,37 @@ int MANIP_ARM_HOLD_RANGE_HIGH = Placeholder;
 int MANIP_ARM_HOLD_POWER = 10;
 int MANIP_ARM_UPPER_LIMIT = Placeholder;
 int MANIP_ARM_LOWER_LIMIT = Placeholder;
+long liftCount;
+long manipCount;
+
+//lift count
+long liftCounts()
+{
+	return(SensorValue[liftPot]);
+}
+//manip count
+long manipCounts()
+{
+	return(SensorValue[manipPot]);
+}
 
 // sets motors to correct power for lift
 void liftMotorSet ( int value, int deadzone )
 {
+	liftCount = liftCounts();
 	int drive_value = value;
 
 	// holding power
-	if( (SensorValue(liftPot) > LIFT_ARM_HOLD_RANGE_LOW) && (SensorValue(liftPot) < LIFT_ARM_HOLD_RANGE_HIGH) )
+	if( (liftCount > LIFT_ARM_HOLD_RANGE_LOW) && (liftCount < LIFT_ARM_HOLD_RANGE_HIGH) )
 	{
 		if( (drive_value >= 0) && ( drive_value < LIFT_ARM_HOLD_POWER ) )
 			drive_value = LIFT_ARM_HOLD_POWER;
 	}
 
 	// limit range at extreme end of range
-	if( (SensorValue(liftPot) > LIFT_ARM_UPPER_LIMIT ) && (drive_value > 0) )
+	if( (liftCount > LIFT_ARM_UPPER_LIMIT ) && (drive_value > 0) )
 		drive_value = 0;
-	if( (SensorValue(liftPot) < LIFT_ARM_LOWER_LIMIT ) && (drive_value < 0) )
+	if( (liftCount < LIFT_ARM_LOWER_LIMIT ) && (drive_value < 0) )
 		drive_value = 0;
 	if(abs(errorLift) < deadzone)
 		drive_value = 10;
@@ -43,21 +58,22 @@ void liftMotorSet ( int value, int deadzone )
 //sets motors to correct power for manipulator
 void manipMotorSet (int value, int deadzone )
 {
+	manipCount = manipCounts();
 	int drive_value = value;
 
 	// holding power
-	if( (SensorValue(manipPot) > MANIP_ARM_HOLD_RANGE_LOW) && (SensorValue(manipPot) < MANIP_ARM_HOLD_RANGE_HIGH) )
+	if( (manipCount > MANIP_ARM_HOLD_RANGE_LOW) && (manipCount < MANIP_ARM_HOLD_RANGE_HIGH) )
 	{
 		if( (drive_value >= 0) && ( drive_value < MANIP_ARM_HOLD_POWER ) )
 			drive_value = MANIP_ARM_HOLD_POWER;
 	}
 
 	// limit range at extreme end of range
-	if( (SensorValue(manipPot) > MANIP_ARM_UPPER_LIMIT ) && (drive_value > 0) )
+	if( (manipCount > MANIP_ARM_UPPER_LIMIT ) && (drive_value > 0) )
 		drive_value = 0;
-	if( (SensorValue(manipPot) < MANIP_ARM_LOWER_LIMIT ) && (drive_value < 0) )
+	if( (manipCount < MANIP_ARM_LOWER_LIMIT ) && (drive_value < 0) )
 		drive_value = 0;
-	if(abs(errorLift) < deadzone)
+	if(abs(errorManip) < deadzone)
 		drive_value = 10;
 	motor[Placeholder] = drive_value;
 }
@@ -69,12 +85,13 @@ task CapControl()
 	{
 		while(mControl)
 		{
-			errorManip = manipAngle - SensorValue(manipPot);
-			motorPower = errorManip * .05;
-			if( motorPower > 127 ) motorPower = 127;
-			if( motorPower < -127 ) motorPower = -127;
-			manipMotorSet (motorPower, 100);
-			wait1Msec(20);
+			manipCount = manipCounts();
+			errorManip = manipAngle - manipCount;
+			ManipMotorPower = errorManip * .05;
+			if( ManipMotorPower > 127 ) ManipMotorPower = 127;
+			if( ManipMotorPower < -127 ) ManipMotorPower = -127;
+			manipMotorSet (ManipMotorPower, 100);
+			wait1Msec(10);
 		}
 		wait1Msec(10);
 	}
@@ -87,12 +104,13 @@ task LiftControl()
 	{
 		while(lControl)
 		{
-			errorLift = liftAngle - SensorValue(manipPot);
-			motorPower = errorLift * .05;
-			if( motorPower > 127 ) motorPower = 127;
-			if( motorPower < -127 ) motorPower = -127;
-			liftMotorSet (motorPower, 100);
-			wait1Msec(20);
+			liftCount = liftCounts();
+			errorLift = liftAngle - liftCount;
+			LiftMotorPower = errorLift * .05;
+			if( LiftMotorPower > 127 ) LiftMotorPower = 127;
+			if( LiftMotorPower < -127 ) LiftMotorPower = -127;
+			liftMotorSet (LiftMotorPower, 100);
+			wait1Msec(10);
 		}
 		wait1Msec(10);
 	}
