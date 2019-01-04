@@ -119,9 +119,9 @@ task usercontrol()
 		if(Placeholder==1)
 		{
 			lControl = 1;
+			liftAngle = Placeholder;
 			mControl = 1;
 			manipAngle = Placeholder;
-			liftAngle = Placeholder;
 		}
 		else if(Placeholder==1)
 		{
