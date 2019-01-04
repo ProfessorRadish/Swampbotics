@@ -4,37 +4,36 @@ int Placeholder;
 int errorManip;
 int ManipMotorPower;
 int mControl;
-long manipCount;
 #define MANIP_ARM_HOLD_RANGE_LOW Placeholder
 #define MANIP_ARM_HOLD_RANGE_HIGH Placeholder
-#define MANIP_ARM_HOLD_POWER 10
+#define MANIP_ARM_HOLD_POWER 15
 #define MANIP_ARM_UPPER_LIMIT Placeholder
 #define MANIP_ARM_LOWER_LIMIT Placeholder
-//manip count
-long manipCounts()
-{
-	return(SensorValue[manipPot]);
-}
+
 //sets motors to correct power for manipulator
 void manipMotorSet (int value, int deadzone )
 {
-	manipCount = manipCounts();
 	int drive_value = value;
+	
 	// holding power
-	if( (manipCount > MANIP_ARM_HOLD_RANGE_LOW) && (manipCount < MANIP_ARM_HOLD_RANGE_HIGH) )
+	if( (SensorValue[manipPot] > MANIP_ARM_HOLD_RANGE_LOW) && (SensorValue[manipPot] < MANIP_ARM_HOLD_RANGE_HIGH) )
 	{
 		if( (drive_value >= 0) && ( drive_value < MANIP_ARM_HOLD_POWER ) )
 			drive_value = MANIP_ARM_HOLD_POWER;
 	}
 	// limit range at extreme end of range
-	if( (manipCount > MANIP_ARM_UPPER_LIMIT ) && (drive_value > 0) )
+	if( (SensorValue[manipPot] > MANIP_ARM_UPPER_LIMIT ) && (drive_value > 0) )
 		drive_value = 0;
-	if( (manipCount < MANIP_ARM_LOWER_LIMIT ) && (drive_value < 0) )
+	if( (SensorValue[manipPot] < MANIP_ARM_LOWER_LIMIT ) && (drive_value < 0) )
 		drive_value = 0;
+	if(mControl)
+		{
 	if(abs(errorManip) < deadzone)
 		drive_value = 10;
+		}
 	motor[Placeholder] = drive_value;
 }
+
 // task for controlling the manipulator's movements
 task CapControl()
 {
@@ -43,8 +42,7 @@ task CapControl()
 	{
 		while(mControl)
 		{
-			manipCount = manipCounts();
-			errorManip = manipAngle - manipCount;
+			errorManip = manipAngle - SensorValue[manipPot];
 			ManipMotorPower = (errorManip * .05) + 10;
 			if( ManipMotorPower > 127 ) ManipMotorPower = 127;
 			if( ManipMotorPower < -127 ) ManipMotorPower = -127;
@@ -60,39 +58,38 @@ int liftAngle;
 int errorLift;
 int LiftMotorPower;
 int lControl;
-long liftCount;
 #define LIFT_ARM_HOLD_RANGE_LOW Placeholder
 #define LIFT_ARM_HOLD_RANGE_HIGH Placeholder
-#define LIFT_ARM_HOLD_POWER 10
+#define LIFT_ARM_HOLD_POWER 15
 #define LIFT_ARM_UPPER_LIMIT Placeholder
 #define LIFT_ARM_LOWER_LIMIT Placeholder
-//lift count
-long liftCounts()
-{
-	return(SensorValue[liftPot]);
-}
+
 // sets motors to correct power for lift
 void liftMotorSet ( int value, int deadzone )
 {
-	liftCount = liftCounts();
 	int drive_value = value;
 
 	// holding power
-	if( (liftCount > LIFT_ARM_HOLD_RANGE_LOW) && (liftCount < LIFT_ARM_HOLD_RANGE_HIGH) )
+	if( (SensorValue[liftPot] > LIFT_ARM_HOLD_RANGE_LOW) && (SensorValue[liftPot] < LIFT_ARM_HOLD_RANGE_HIGH) )
 	{
 		if( (drive_value >= 0) && ( drive_value < LIFT_ARM_HOLD_POWER ) )
 			drive_value = LIFT_ARM_HOLD_POWER;
 	}
 	// limit range at extreme end of range
-	if( (liftCount > LIFT_ARM_UPPER_LIMIT ) && (drive_value > 0) )
+	if( (SensorValue[liftPot] > LIFT_ARM_UPPER_LIMIT ) && (drive_value > 0) )
 		drive_value = 0;
-	if( (liftCount < LIFT_ARM_LOWER_LIMIT ) && (drive_value < 0) )
+	if( (SensorValue[liftPot] < LIFT_ARM_LOWER_LIMIT ) && (drive_value < 0) )
 		drive_value = 0;
+	if(lControl)
+	{
 	if(abs(errorLift) < deadzone)
 		drive_value = 10;
+		wait1Msec(10);
+	}
 	motor[liftOne] = drive_value;
 	motor[liftTwo] = drive_value;
 }
+
 //task for controlling the lift's movements
 task LiftControl()
 {
@@ -101,8 +98,7 @@ task LiftControl()
 	{
 		while(lControl)
 		{
-			liftCount = liftCounts();
-			errorLift = liftAngle - liftCount;
+			errorLift = liftAngle - SensorValue[liftPot];
 			LiftMotorPower = (errorLift * .05) + 10;
 			if( LiftMotorPower > 127 ) LiftMotorPower = 127;
 			if( LiftMotorPower < -127 ) LiftMotorPower = -127;
@@ -123,6 +119,8 @@ task usercontrol()
 		if(Placeholder==1)
 		{
 			lControl = 1;
+			mControl = 1;
+			manipAngle = Placeholder;
 			liftAngle = Placeholder;
 		}
 		else if(Placeholder==1)
@@ -135,27 +133,8 @@ task usercontrol()
 			liftMotorSet (-127, 0);
 			lControl = 0;
 		}
-		else if(lControl == 0 && Placeholder == 0 && Placeholder ==0)
-		{
-			liftMotorSet (LIFT_ARM_HOLD_POWER, 0);
-		}
 		//-----Cap-Manipulator----//
 		if(Placeholder==1)
-		{
-			mControl = 1;
-			manipAngle = Placeholder;
-		}
-		else if(Placeholder==1)
-		{
-			mControl = 1;
-			manipAngle = Placeholder;
-		}
-		else if(Placeholder==1)
-		{
-			mControl = 1;
-			manipAngle = Placeholder;
-		}
-		else if(Placeholder==1)
 		{
 			manipMotorSet (127, 0);
 			mControl = 0;
@@ -164,10 +143,6 @@ task usercontrol()
 		{
 			manipMotorSet (-127, 0);
 			mControl = 0;
-		}
-		else if(mControl == 0 && Placeholder == 0 && Placeholder ==0)
-		{
-			manipMotorSet (MANIP_ARM_HOLD_POWER, 0);
 		}
 		wait1Msec(10);
 	}
