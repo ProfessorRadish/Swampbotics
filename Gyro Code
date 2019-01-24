@@ -9,7 +9,12 @@ while(1)
 {
 GyroError = GyroDesired - SensorValue[Gyro]
 MotorPower = GyroError * .05
+if( MotorPower > 127 ) MotorPower = 127;
+if( MotorPower < -127 ) MotorPower = -127;
+if(abs(GryoError) < 30) MotorPower = 0;
 SetMotor(RightFront, MotorPower * direction)
 SetMotor(RightBack, MotorPower * direction)
 SetMotor(LeftFront, MotorPower * direction)
 SetMotor(LeftBack, MotorPower * direction)
+wait1Msec(10);
+}
