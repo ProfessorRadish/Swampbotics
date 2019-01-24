@@ -1,0 +1,15 @@
+int GyroDesired
+int GyroError
+int MotorPower
+define# LEFT 1
+define# RIGHT -1
+void GyroTurning(int degrees, direction)
+SensorValue[Gyro] = 0;
+while(1)
+{
+GyroError = GyroDesired - SensorValue[Gyro]
+MotorPower = GyroError * .05
+SetMotor(RightFront, MotorPower * direction)
+SetMotor(RightBack, MotorPower * direction)
+SetMotor(LeftFront, MotorPower * direction)
+SetMotor(LeftBack, MotorPower * direction)
