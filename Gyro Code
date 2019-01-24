@@ -3,9 +3,10 @@ int GyroError
 int MotorPower
 define# LEFT 1
 define# RIGHT -1
-void GyroTurning(int degrees, direction)
-SensorValue[Gyro] = 0;
-while(1)
+
+void GyroTurning(int Degrees, Direction)
+
+while(abs(GyroError) > 30)
 {
 GyroError = GyroDesired - SensorValue[Gyro]
 MotorPower = GyroError * .05
