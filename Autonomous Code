@@ -1,0 +1,33 @@
+void AutonomousDrive(int tickGoal, int masterPower)
+{
+  int totalTicks = 0;
+  int slavePower = masterPower - 5; 
+  int error = 0;
+  int kp = 5;
+ 
+  SensorValue[leftEncoder] = 0;
+  SensorValue[rightEncoder] = 0;
+  
+  while(abs(totalTicks) < tickGoal)
+  {
+    SetMotor(RightFront,masterPower);
+    SetMotor(RightBack,masterPower);
+    SetMotor(LeftFront,slavePower);
+    SetMotor(LeftBack,slavePower);
+ 
+    error = SensorValue[LeftDrive] - SensorValue[RightDrive];
+ 
+    slavePower += error / kp;
+ 
+    SensorValue[leftEncoder] = 0;
+    SensorValue[rightEncoder] = 0;
+ 
+    wait1Msec(20);
+ 
+    totalTicks+= SensorValue[leftEncoder];
+  }
+    SetMotor(RightFront,0);
+    SetMotor(RightBack,0);
+    SetMotor(LeftFront,0);
+    SetMotor(LeftBack,0); 
+}
