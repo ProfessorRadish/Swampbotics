@@ -42,7 +42,7 @@ void turn(int Degrees, direction)
 while(abs(gyroError) > 30)
 {
 gyroError = gyroDesired - SensorValue[Gyro];
-motorPower = GyroError * .05;
+motorPower = abs(GyroError) * .05;
 if( motorPower > 127 ) motorPower = 127;
 if( motorPower < -127 ) motorPower = -127;
 if(abs(gyroError) < 30) motorPower = 0;
