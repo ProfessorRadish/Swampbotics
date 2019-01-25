@@ -31,24 +31,24 @@ void AutonomousDrive(int tickGoal, int masterPower)
     SetMotor(LeftFront,0);
     SetMotor(LeftBack,0); 
 }
-int GyroDesired
-int GyroError
-int MotorPower
-define# LEFT 1
-define# RIGHT -1
+int gyroDesired
+int gyroError
+int motorPower
+#define RIGHT -1
+#define LEFT 1
 
-void GyroTurning(int Degrees, Direction)
+void turn(int Degrees, direction)
 
-while(abs(GyroError) > 30)
+while(abs(gyroError) > 30)
 {
-GyroError = GyroDesired - SensorValue[Gyro]
-MotorPower = GyroError * .05
-if( MotorPower > 127 ) MotorPower = 127;
-if( MotorPower < -127 ) MotorPower = -127;
-if(abs(GryoError) < 30) MotorPower = 0;
-SetMotor(RightFront, MotorPower * direction)
-SetMotor(RightBack, MotorPower * direction)
-SetMotor(LeftFront, MotorPower * direction)
-SetMotor(LeftBack, MotorPower * direction)
+gyroError = gyroDesired - SensorValue[Gyro];
+motorPower = GyroError * .05;
+if( motorPower > 127 ) motorPower = 127;
+if( motorPower < -127 ) motorPower = -127;
+if(abs(gyroError) < 30) motorPower = 0;
+SetMotor(RightFront, motorPower * direction);
+SetMotor(RightBack, motorPower * direction);
+SetMotor(LeftFront, -motorPower * direction);
+SetMotor(LeftBack, -motorPower * direction);
 wait1Msec(10);
 }
